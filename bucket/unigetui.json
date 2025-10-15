@@ -30,8 +30,8 @@
             }
         },
         "hash": {
-            "url": "https://github.com/marticliment/UniGetUI/releases/tag/$version",
-            "regex": "$basename.*?sha256: <code>$sha256</code>"
+            "url": "https://update.code.visualstudio.com/api/update/win32-x64-archive/stable/latest",
+            "jsonpath": "$.sha256hash"
         }
     }
 }
