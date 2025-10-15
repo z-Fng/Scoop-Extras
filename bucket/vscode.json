@@ -76,14 +76,14 @@
     "autoupdate": {
         "architecture": {
             "64bit": {
-                "url": "https://update.code.visualstudio.com/$version/win32-x64-archive/stable#/dl.7z",
+                "url": "https://update.code.visualstudio.com/$version/win32-x64-archive/stable",
                 "hash": {
                     "url": "https://update.code.visualstudio.com/api/update/win32-x64-archive/stable/latest",
                     "jsonpath": "$.sha256hash"
                 }
             },
             "arm64": {
-                "url": "https://update.code.visualstudio.com/$version/win32-arm64-archive/stable#/dl.7z",
+                "url": "https://update.code.visualstudio.com/$version/win32-arm64-archive/stable",
                 "hash": {
                     "url": "https://update.code.visualstudio.com/api/update/win32-arm64-archive/stable/latest",
                     "jsonpath": "$.sha256hash"
