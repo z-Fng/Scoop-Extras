@@ -11,7 +11,9 @@ jobs:
     steps:
     - uses: actions/checkout@main
     - name: Excavate
-      uses: ScoopInstaller/GithubActions@main
+      uses: z-Fng/GithubActions@test-rate-limit
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SKIP_UPDATED: '1'
+        SCOOP_REPO: https://github.com/z-Fng/Scoop.git
+        SCOOP_BRANCH: test-github-rate-limit
