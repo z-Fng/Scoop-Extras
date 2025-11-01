@@ -1,5 +1,5 @@
 {
-    "version": "2.7.23",
+    "version": "2.7.25",
     "description": "GUI for rclone & S3",
     "homepage": "https://rcloneui.com",
     "license": "Apache-2.0",
@@ -9,12 +9,12 @@
     ],
     "architecture": {
         "64bit": {
-            "url": "https://github.com/rclone-ui/rclone-ui/releases/download/v2.7.23/Rclone.UI_x64.exe#/dl.7z",
-            "hash": "bc1576f36ffdf3a779bb3649c39c162444ef3d6f408adbf9a62c3bd25b3635be"
+            "url": "https://github.com/rclone-ui/rclone-ui/releases/download/v2.7.25/Rclone.UI_x64.exe#/dl.7z",
+            "hash": "246a92f6f8afe6f7a6eca247bc26913c67e1188a170806cf42dfc7d5d644640e"
         },
         "arm64": {
-            "url": "https://github.com/rclone-ui/rclone-ui/releases/download/v2.7.23/Rclone.UI_arm64.exe#/dl.7z",
-            "hash": "410ee278013e95fe247c426b652b5b650c3344be211aa02a4e1d40a58a4981d5"
+            "url": "https://github.com/rclone-ui/rclone-ui/releases/download/v2.7.25/Rclone.UI_arm64.exe#/dl.7z",
+            "hash": "1a59e6117199f1220167b8fc38cd70ce5e69906dd350e41c409993963f38bfc4"
         }
     },
     "pre_install": "Remove-Item \"$dir\\`$PLUGINSDIR\", \"$dir\\uninstall.exe\" -Force -Recurse",
