@@ -1,5 +1,5 @@
 {
-    "version": "20251030",
+    "version": "20251110",
     "description": "Video player based on MPlayer/mplayer2 (builds by shinchiro)",
     "homepage": "https://mpv.io",
     "license": "LGPL-2.1-or-later,GPL-2.0-or-later",
@@ -12,12 +12,12 @@
     },
     "architecture": {
         "64bit": {
-            "url": "https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20251030/mpv-x86_64-20251030-git-454d9eb.7z",
-            "hash": "42f8850ba570846c149988e66578883c3f14b729a4bbb3fe9c0b1a4446c50aed"
+            "url": "https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20251110/mpv-x86_64-20251110-git-bbafb74.7z",
+            "hash": "40744184ad4c0788313ead3253b3562b5b95e6a4c928b93782cc986a1574ca07"
         },
         "32bit": {
-            "url": "https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20251030/mpv-i686-20251030-git-454d9eb.7z",
-            "hash": "3223c61c04dff2b4f65a0a810509f233f856bd58ca730e0c98bde46ee5a2cebc"
+            "url": "https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20251110/mpv-i686-20251110-git-bbafb74.7z",
+            "hash": "bba7e24cf7f285c6d552dcea518ab6b5078855ab03d51d2989ce6f6f160c0f84"
         }
     },
     "pre_install": "Remove-Item \"$dir\\updater.bat\"",
