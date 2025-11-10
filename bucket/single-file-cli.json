@@ -1,12 +1,12 @@
 {
-    "version": "2.0.75",
+    "version": "2.0.77",
     "description": "A command-line tool that allows you to save a web page with all its resources in a single HTML file.",
     "homepage": "https://github.com/gildas-lormeau/single-file-cli",
     "license": "AGPL-3.0-or-later",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/gildas-lormeau/single-file-cli/releases/download/v2.0.75/single-file.exe",
-            "hash": "cfbabd8eeda3acf93ba7d9ee69a0d80964117431c45d568162a8ad642cfa79e9"
+            "url": "https://github.com/gildas-lormeau/single-file-cli/releases/download/v2.0.77/single-file.exe",
+            "hash": "621985b1fee609b3653e5dc5b00e5ae77c2ef972ee70f3758fba8d0daed891e2"
         }
     },
     "bin": "single-file.exe",
