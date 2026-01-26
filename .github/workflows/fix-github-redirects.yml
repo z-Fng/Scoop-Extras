@@ -1,0 +1,357 @@
+name: Check and Fix GitHub Redirects
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'  # Daily at 00:00 UTC
+
+jobs:
+  fix-github-redirects:
+    name: Check and Fix GitHub Redirects
+    runs-on: windows-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      TARGET_BRANCH: "automated-fix-github-redirects"
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@main
+        with:
+          path: my_bucket
+
+      - name: Check GitHub Repository Redirects
+        shell: pwsh
+        working-directory: my_bucket
+        run: |
+          $repoSet = [System.Collections.Generic.HashSet[string]]::new()
+
+          Get-ChildItem 'bucket' -Filter '*.json' -File | ForEach-Object {
+            $content = Get-Content $_.FullName -Raw
+            # Match only:
+            # 1. https?://github.com/<owner>/<repo>
+            # 2. https?://api.github.com/repos/<owner>/<repo>
+            $matchResult = $content | Select-String -Pattern 'https?://(api\.github\.com/repos/|github\.com/)([^/"\s]+)/([^/"\s]+?)(?=\.git(?:[/?#]|$)|[/?#]|$)' -AllMatches
+            if ($matchResult) {
+              $matchResult.Matches | ForEach-Object {
+                $owner = $_.Groups[2].Value
+                $repo = $_.Groups[3].Value
+                $repoSet.Add("$owner/$repo") | Out-Null
+              }
+            }
+          }
+
+          Write-Host "Found $($repoSet.Count) unique GitHub repositories.`n"
+
+          $repoList = @($repoSet.GetEnumerator() | ForEach-Object { $_ })
+          $redirects = [System.Collections.Generic.HashSet[string]]::new()
+          $unreachable = @()
+
+          # Split into batches of 100 repos (GraphQL limit)
+          $batchSize = 100
+          $batches = [Math]::Ceiling($repoList.Count / $batchSize)
+
+          Write-Host "Checking in $batches batches of $batchSize repos each.`n"
+
+          for ($batch = 0; $batch -lt $batches; $batch++) {
+              $start = $batch * $batchSize
+              $end = [Math]::Min($start + $batchSize - 1, $repoList.Count - 1)
+              $currentBatch = $repoList[$start..$end]
+
+              # Build GraphQL query with aliases
+              $queryParts = @("query {")
+              $repoIndex = 0
+
+              foreach ($repo in $currentBatch) {
+                  $parts = $repo -split '/'
+                  $owner = $parts[0]
+                  $name = $parts[1]
+                  $alias = "repo$repoIndex"
+                  $queryParts += "  $($alias): repository(owner: `"$owner`", name: `"$name`") { owner { login } name }"
+                  $repoIndex++
+              }
+
+              $queryParts += "}"
+              $graphqlQuery = $queryParts -join "`n"
+
+              try {
+                  $headers = @{
+                      "Authorization" = "Bearer $env:GITHUB_TOKEN"
+                      "Accept" = "application/vnd.github.v3+json"
+                  }
+
+                  $body = @{
+                      query = $graphqlQuery
+                  } | ConvertTo-Json
+
+                  $percent = [Math]::Round((($end + 1) / $repoList.Count) * 100, 1)
+                  Write-Host "[$($batch + 1)/$batches] ($percent%) Processing repos $($start + 1)-$($end + 1) of $($repoList.Count)..."
+
+                  $response = Invoke-WebRequest -Uri "https://api.github.com/graphql" -Method Post -Headers $headers -Body $body -TimeoutSec 30
+                  $data = $response.Content | ConvertFrom-Json
+
+                  # Get rate limit info from response headers
+                  $rateLimitUsed = $response.Headers['X-RateLimit-Used']
+                  $rateLimitLimit = $response.Headers['X-RateLimit-Limit']
+                  $rateLimitRemaining = $response.Headers['X-RateLimit-Remaining']
+
+                  Write-Host "  Rate Limit: $rateLimitUsed of $rateLimitLimit requests used ($rateLimitRemaining remaining)."
+
+                  # Check each repository response
+                  $repoIndex = 0
+                  foreach ($repo in $currentBatch) {
+                      $alias = "repo$repoIndex"
+                      $result = $data.data.$alias
+
+                      if ($result) {
+                          $actualRepo = "$($result.owner.login)/$($result.name)"
+
+                          # Check if it was redirected (requested repo != actual repo)
+                          if ($actualRepo -ne $repo) {
+                              $oldUrl = "https://github.com/$repo"
+                              $newUrl = "https://github.com/$actualRepo"
+                              $redirectKey = "$oldUrl -> $newUrl"
+                              $redirects.Add($redirectKey) | Out-Null
+                              Write-Host "  ✓ Found: $redirectKey"
+                          }
+                      } else {
+                          # GraphQL returned null - repo is gone
+                          $unreachable += $repo
+                          Write-Host "  ✗ Unreachable: https://github.com/$repo"
+                      }
+
+                      $repoIndex++
+                  }
+              } catch {
+                  Write-Host "  Error in batch $($batch + 1): $($_.Exception.Message)"
+              }
+
+              # Add delay between batches to avoid rate limiting
+              Start-Sleep -Seconds 2
+          }
+
+          Write-Host "`n=== Checked: $($repoList.Count) repositories ==="
+          Write-Host "=== Found: $($redirects.Count) redirects, $($unreachable.Count) unreachable ===`n"
+
+          if ($redirects.Count -gt 0) {
+            Write-Host "=== Redirect Details ==="
+            $redirects | ForEach-Object {
+              Write-Host "  $_"
+            }
+          }
+
+          if ($unreachable.Count -gt 0) {
+            Write-Host "`n=== Unreachable Repositories ==="
+            $unreachable | ForEach-Object {
+              Write-Host "  https://github.com/$_"
+            }
+          }
+
+          # Save redirects to file
+          $redirectsArray = @($redirects.GetEnumerator() | Sort-Object)
+          $redirectsArray | ConvertTo-Json | Out-File -FilePath "../redirects.json" -Encoding UTF8
+          Write-Host "Redirects saved to: redirects.json"
+
+          # Save unreachable to file
+          $unreachable | ConvertTo-Json | Out-File -FilePath "../unreachable.json" -Encoding UTF8
+          Write-Host "Unreachable saved to: unreachable.json"
+
+      - name: Apply redirects to manifests
+        shell: pwsh
+        working-directory: my_bucket
+        run: |
+          $redirectsFile = "../redirects.json"
+          Write-Host "Loading redirects from: $redirectsFile..."
+          $redirects = Get-Content $redirectsFile | ConvertFrom-Json
+
+          if ($redirects.Count -eq 0) {
+            Write-Host "No redirects found. Skipping manifest updates."
+            exit 0
+          }
+
+          $changedFiles = @{}
+
+          Write-Host "Applying redirects to bucket files...`n"
+
+          Get-ChildItem 'bucket' -Filter '*.json' -File -Recurse | ForEach-Object {
+              $file = $_
+              $content = Get-Content $file.FullName -Raw -Encoding UTF8
+              $originalContent = $content
+              $packageName = $file.BaseName
+
+              foreach ($redirect in $redirects) {
+                  $parts = $redirect -split ' -> '
+                  $oldRepo = $parts[0] -replace 'https://github\.com/', ''
+                  $newRepo = $parts[1] -replace 'https://github\.com/', ''
+
+                  # Replace both formats (http and https):
+                  # 1. http(s)://github.com/<owner>/<repo>
+                  # 2. http(s)://api.github.com/repos/<owner>/<repo>
+                  $escapedOldRepo = [regex]::Escape($oldRepo)
+                  $oldUrl1 = "https?://github\.com/$escapedOldRepo"
+                  $newUrl1 = "https://github.com/$newRepo"
+                  $oldUrl2 = "https?://api\.github\.com/repos/$escapedOldRepo"
+                  $newUrl2 = "https://api.github.com/repos/$newRepo"
+
+                  $replaced = $false
+                  foreach ($url in @($oldUrl1, $oldUrl2)) {
+                      if ($content -match $url) {
+                          $targetUrl = if ($url -match 'api\.github\.com/repos') { $newUrl2 } else { $newUrl1 }
+                          $content = $content -replace $url, $targetUrl
+                          Write-Host "$packageName`: replaced URL -> $targetUrl"
+                          $replaced = $true
+                      }
+                  }
+                  if ($replaced) {
+                      $changedFiles[$packageName] = $true
+                  }
+              }
+
+              # Only write if content changed
+              if ($content -ne $originalContent) {
+                  $content | Out-File -FilePath $file.FullName -Encoding UTF8 -NoNewline
+              }
+          }
+
+          Write-Host "`nTotal files modified: $($changedFiles.Count)."
+
+      - name: Commit, push and create PR
+        shell: pwsh
+        working-directory: my_bucket
+        run: |
+          # Configure git
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Common variables
+          $targetBranch = $env:TARGET_BRANCH
+          $baseBranch = $env:GITHUB_REF_NAME
+          $title = "(chore): Fix GitHub repository redirects"
+          Write-Host "Base branch: $baseBranch"
+          Write-Host "Target branch: $targetBranch"
+
+          # Check if there are actual file changes
+          $changedFiles = git diff --name-only bucket/
+
+          # Guard clause: no changes, skip everything
+          if (-not $changedFiles) {
+              Write-Host "No file changes detected, skipping commit, push and PR creation."
+              exit 0
+          }
+
+          Write-Host "Changes detected, preparing to commit..."
+
+          # Fetch required branches from remote
+          Write-Host "Fetching required branches from remote..."
+          git fetch origin $baseBranch
+          git fetch origin $targetBranch 2>$null
+
+          # Check if target branch exists remotely
+          $branchExists = git show-ref --verify --quiet "refs/remotes/origin/$targetBranch"
+
+          if ($branchExists) {
+              Write-Host "Branch $targetBranch already exists. Checking it out..."
+              git checkout $targetBranch
+              # Reset to base branch and apply changes (clean slate)
+              git reset --hard origin/$baseBranch
+          } else {
+              Write-Host "Creating new branch $targetBranch from $baseBranch..."
+              git checkout origin/$baseBranch -b $targetBranch
+          }
+
+          # Commit with generic message
+          Write-Host "Committing changes..."
+          git add bucket/
+          git commit -m $title
+
+          # Force push to overwrite the branch
+          Write-Host "Force pushing changes to $targetBranch..."
+          git push origin $targetBranch --force
+
+          # Check if we have anything to report (redirects or unreachable)
+          $redirects = Get-Content "../redirects.json" | ConvertFrom-Json
+          $unreachable = Get-Content "../unreachable.json" | ConvertFrom-Json
+
+          Write-Host "Found data to report: redirects=$($redirects.Count), unreachable=$($unreachable.Count)"
+
+          # Setup API request
+          $prCheckHeaders = @{
+              "Authorization" = "Bearer $env:GITHUB_TOKEN"
+              "Accept" = "application/vnd.github.v3+json"
+          }
+          $repo = $env:GITHUB_REPOSITORY
+
+          # Build workflow run URL
+          $workflowUrl = "https://github.com/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+          Write-Host "Workflow URL: $workflowUrl"
+
+          # Build PR description
+          $motivationLines = @("This automated workflow detected the following GitHub repository redirects:")
+
+          if ($redirects.Count -gt 0) {
+              $motivationLines += "- **Repository Redirects** ($($redirects.Count) found):"
+              $redirects | ForEach-Object {
+                  $parts = $_ -split ' -> '
+                  $motivationLines += "  - $($parts[0]) → $($parts[1])"
+              }
+          }
+
+          if ($unreachable.Count -gt 0) {
+              $motivationLines += "- **Unreachable Repositories** ($($unreachable.Count) found):"
+              $unreachable | ForEach-Object {
+                  $motivationLines += "  - https://github.com/$_"
+              }
+          }
+
+          $bodyLines = @()
+          $bodyLines += "### Changes"
+          $bodyLines += "- $title"
+          $bodyLines += ""
+          $bodyLines += "### Motivation"
+          $bodyLines += $motivationLines
+          $bodyLines += ""
+          $bodyLines += "[_Check the full log for details._]($workflowUrl)"
+
+          $prBody = $bodyLines -join "`n"
+
+          # Check if PR already exists
+          Write-Host "Checking if PR already exists..."
+          $prListUrl = "https://api.github.com/repos/$repo/pulls?head=${targetBranch}&base=$baseBranch"
+          $prListResponse = Invoke-WebRequest -Uri $prListUrl -Method Get -Headers $prCheckHeaders
+          $existingPRs = $prListResponse.Content | ConvertFrom-Json
+          $existingPR = $existingPRs | Select-Object -First 1
+
+          if ($existingPR) {
+              # Check if PR was created by this workflow
+              $isCreatedByBot = $existingPR.user.type -eq "Bot" -and $existingPR.user.login -eq "github-actions[bot]"
+
+              if (-not $isCreatedByBot) {
+                  Write-Error "PR #$($existingPR.number) was created by $($existingPR.user.login), not by this workflow. Cannot update PR created by other users."
+                  exit 1
+              }
+
+              # Update existing PR
+              Write-Host "PR already exists ($($existingPR.html_url)), updating..."
+              $updatePRBody = @{
+                  body = $prBody
+              } | ConvertTo-Json
+              $updatePRUrl = "https://api.github.com/repos/$repo/pulls/$($existingPR.number)"
+              $updatePRResponse = Invoke-WebRequest -Uri $updatePRUrl -Method Patch -Headers $prCheckHeaders -Body $updatePRBody
+              Write-Host "PR updated: $($existingPR.html_url)"
+          } else {
+              # Create new PR
+              Write-Host "Creating new PR..."
+              $createPRBody = @{
+                  title = $title
+                  head = $targetBranch
+                  base = $baseBranch
+                  body = $prBody
+                  labels = @("automated")
+              } | ConvertTo-Json
+
+              $createPRUrl = "https://api.github.com/repos/$repo/pulls"
+              $prCreateResponse = Invoke-WebRequest -Uri $createPRUrl -Method Post -Headers $prCheckHeaders -Body $createPRBody
+              $createdPR = $prCreateResponse.Content | ConvertFrom-Json
+              Write-Host "PR created: $($createdPR.html_url)"
+          }
