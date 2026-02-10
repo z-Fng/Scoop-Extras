@@ -1,7 +1,7 @@
 {
     "version": "2.10.3",
     "description": "A pager designed to work without any configuration",
-    "homepage": "https://github.com/walles/moar/",
+    "homepage": "https://github.com/walles/moor/",
     "license": "BSD-2-Clause-Views",
     "architecture": {
         "64bit": {
