@@ -5,7 +5,7 @@
     "license": "MIT,ISC,Apache-2.0,GPL-3.0-only",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/valadaptive/ntsc-rs/releases/download/v0.9.3/ntsc-rs-windows-standalone.zip",
+            "url": "https://github.com/ntsc-rs/ntsc-rs/releases/download/v0.9.3/ntsc-rs-windows-standalone.zip",
             "hash": "3fecd6cf448eaddbb2e30124e8ef4a9a9cdb18c83d80db8bfec19992d8dc7c0a"
         }
     },
@@ -17,12 +17,12 @@
         ]
     ],
     "checkver": {
-        "github": "https://github.com/valadaptive/ntsc-rs"
+        "github": "https://github.com/ntsc-rs/ntsc-rs"
     },
     "autoupdate": {
         "architecture": {
             "64bit": {
-                "url": "https://github.com/valadaptive/ntsc-rs/releases/download/v$version/ntsc-rs-windows-standalone.zip"
+                "url": "https://github.com/ntsc-rs/ntsc-rs/releases/download/v$version/ntsc-rs-windows-standalone.zip"
             }
         }
     }
