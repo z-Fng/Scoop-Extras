@@ -1,6 +1,6 @@
 {
     "##": [
-        "The requirements are listed in https://github.com/TASVideos/BizHawk-Prereqs/blob/master/README",
+        "The requirements are listed in https://github.com/TASEmulators/BizHawk-Prereqs/blob/master/README",
         "The list of firmware-specific directories to persist comes from the base directories listed in BizHawk's /src/BizHawk.Client.Common/config/PathEntryCollection.cs"
     ],
     "version": "2.11",
@@ -16,7 +16,7 @@
     },
     "architecture": {
         "64bit": {
-            "url": "https://github.com/TASVideos/BizHawk/releases/download/2.11/BizHawk-2.11-win-x64.zip",
+            "url": "https://github.com/TASEmulators/BizHawk/releases/download/2.11/BizHawk-2.11-win-x64.zip",
             "hash": "722b5aac5e1d89f890b2875b0150f4a86f5762d211f7cd47029cac70434955c0"
         }
     },
@@ -90,7 +90,7 @@
     "autoupdate": {
         "architecture": {
             "64bit": {
-                "url": "https://github.com/TASVideos/BizHawk/releases/download/$version/BizHawk-$version-win-x64.zip"
+                "url": "https://github.com/TASEmulators/BizHawk/releases/download/$version/BizHawk-$version-win-x64.zip"
             }
         }
     }
