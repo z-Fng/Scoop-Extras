@@ -5,18 +5,18 @@
     "license": "Apache-2.0",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/GoogleCloudPlatform/skaffold/releases/download/v2.18.0/skaffold-windows-amd64.exe#/skaffold.exe",
+            "url": "https://github.com/GoogleContainerTools/skaffold/releases/download/v2.18.0/skaffold-windows-amd64.exe#/skaffold.exe",
             "hash": "4b3d894015302f6702d4f878665381af8813fd319e01d3e5ea434eb8fa1c2964"
         }
     },
     "bin": "skaffold.exe",
     "checkver": {
-        "github": "https://github.com/GoogleCloudPlatform/skaffold"
+        "github": "https://github.com/GoogleContainerTools/skaffold"
     },
     "autoupdate": {
         "architecture": {
             "64bit": {
-                "url": "https://github.com/GoogleCloudPlatform/skaffold/releases/download/v$version/skaffold-windows-amd64.exe#/skaffold.exe"
+                "url": "https://github.com/GoogleContainerTools/skaffold/releases/download/v$version/skaffold-windows-amd64.exe#/skaffold.exe"
             }
         },
         "hash": {
