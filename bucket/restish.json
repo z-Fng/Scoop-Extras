@@ -5,18 +5,18 @@
     "license": "MIT",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/danielgtaylor/restish/releases/download/v0.21.2/restish-0.21.2-windows-amd64.zip",
+            "url": "https://github.com/rest-sh/restish/releases/download/v0.21.2/restish-0.21.2-windows-amd64.zip",
             "hash": "da944e8308a87234bd92411d947da8142455e5bcf3c8110e59ab80ec52c9d573"
         }
     },
     "bin": "restish.exe",
     "checkver": {
-        "github": "https://github.com/danielgtaylor/restish/"
+        "github": "https://github.com/rest-sh/restish/"
     },
     "autoupdate": {
         "architecture": {
             "64bit": {
-                "url": "https://github.com/danielgtaylor/restish/releases/download/v$version/restish-$version-windows-amd64.zip"
+                "url": "https://github.com/rest-sh/restish/releases/download/v$version/restish-$version-windows-amd64.zip"
             }
         },
         "hash": {
