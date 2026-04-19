@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: en
+reviews:
+  profile: chill
+  auto_review:
+    enabled: true
+    ignore_title_keywords:
+      - "WIP"
+    drafts: false
+    base_branches:
+      - master
+  poem: false
+  high_level_summary: false
+  sequence_diagrams: false
+  collapse_walkthrough: true
+  changed_files_summary: false
+  related_issues: false
+  related_prs: false
+  suggested_labels: false
+  suggested_reviewers: false
+  finishing_touches:
+    docstrings:
+      enabled: false
+    unit_tests:
+      enabled: false
+  path_instructions:
+    - path: "**"
+      instructions: |
+        If this file is a Scoop manifest, you MUST check for the following:
+        1. [File Location & Name Validation]
+          - Path Check: it MUST be located strictly within the `bucket/` or `deprecated/` directories. If it is placed elsewhere, reject it and tell the user.
+          - Filename Rule: The filename MUST consist ONLY of lowercase letters, numbers, and dots (e.g., `app.name.json`), and must end with `.json`. Reject any uppercase letters or special characters.
+          - Line Endings: Scoop manifests must use CRLF line endings. Remind the user if you detect LF.
+
+        2. [New Package Request Policy]
+          - If this is a NEWLY ADDED manifest file (not a modified or renamed file):
+            Check the `description` field or the PR body for a linked GitHub issue (e.g., #123 or an issue URL).
+            If missing, you should warn the user to check check the acceptance criteria, create a package request issue and link it in the description or PR body.
+
+        3. [Autoupdate Precision]
+          - NEVER allow hardcoded version numbers in the `autoupdate` block (e.g., `autoupdate.url` or `autoupdate.extract_dir`). They must use variables like `$version`, etc.
+          - Cross-check: If the top-level `url`, `extract_dir`, or `architecture.*.url` contain a version number, ensure that these exact paths are properly parameterized in the `autoupdate` block so future automated updates won't miss them.
+
+        4. [Common Dependencies Check]
+          - Pay close attention to packages that might require .NET, VCREDIST (Visual C++ Redistributable), etc.
+          - If the application relies on these, check if they are correctly declared in the `depends` or `suggest` fields using standard Scoop identifiers.
+
+        5. [Guidance]
+          - For any violations of the above rules or other Scoop formatting issues, always provide a link to the official contribution guide or wiki to resolve their confusion.
+          - Related links:
+            - Contribution Guide: https://github.com/ScoopInstaller/.github/blob/main/.github/CONTRIBUTING.md
+            - Wiki: https://github.com/ScoopInstaller/Scoop/wiki/App-Manifests
