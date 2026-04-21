@@ -19,8 +19,7 @@
     ],
     "persist": "portable_settings.txt",
     "checkver": {
-        "github": "https://github.com/HeidiSQL/HeidiSQL",
-        "regex": "tag/([\\d.]+)"
+        "github": "https://github.com/HeidiSQL/HeidiSQL"
     },
     "autoupdate": {
         "architecture": {
