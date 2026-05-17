@@ -5,7 +5,7 @@
     "license": "AGPL-3.0-or-later",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/LinwoodCloud/Butterfly/releases/download/v2.5.1/linwood-butterfly-windows-x86_64.zip",
+            "url": "https://github.com/LinwoodDev/Butterfly/releases/download/v2.5.1/linwood-butterfly-windows-x86_64.zip",
             "hash": "380b553f21e2068ce8c321126f9d3c6d3fc2a4ece3f85d25390551e85058095e"
         }
     },
@@ -17,12 +17,12 @@
         ]
     ],
     "checkver": {
-        "github": "https://github.com/LinwoodCloud/Butterfly"
+        "github": "https://github.com/LinwoodDev/Butterfly"
     },
     "autoupdate": {
         "architecture": {
             "64bit": {
-                "url": "https://github.com/LinwoodCloud/Butterfly/releases/download/v$version/linwood-butterfly-windows-x86_64.zip"
+                "url": "https://github.com/LinwoodDev/Butterfly/releases/download/v$version/linwood-butterfly-windows-x86_64.zip"
             }
         }
     }
