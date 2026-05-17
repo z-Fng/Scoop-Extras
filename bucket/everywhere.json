@@ -5,7 +5,7 @@
     "license": "Apache-2.0",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/DearVa/Everywhere/releases/download/v0.7.7/Everywhere-Windows-x64-v0.7.7.zip",
+            "url": "https://github.com/Sylinko/Everywhere/releases/download/v0.7.7/Everywhere-Windows-x64-v0.7.7.zip",
             "hash": "ce7c711ce4b275f83ff7127d83506cd1b2bf16a598d191b33d8a705aeffae534"
         }
     },
@@ -16,12 +16,12 @@
         ]
     ],
     "checkver": {
-        "github": "https://github.com/DearVa/Everywhere"
+        "github": "https://github.com/Sylinko/Everywhere"
     },
     "autoupdate": {
         "architecture": {
             "64bit": {
-                "url": "https://github.com/DearVa/Everywhere/releases/download/v$version/Everywhere-Windows-x64-v$version.zip"
+                "url": "https://github.com/Sylinko/Everywhere/releases/download/v$version/Everywhere-Windows-x64-v$version.zip"
             }
         }
     }
